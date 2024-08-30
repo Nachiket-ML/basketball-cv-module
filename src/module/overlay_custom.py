@@ -21,6 +21,8 @@ class Overlay(NvDsDrawFunc):
 
         # for example, draw a white bounding box around persons
         # and a green bounding box around faces
+        # TODO: Add textual label for each bounding box (person, ball, rim)
+        # TODO: Draw keypoints from rtmpose model output
         for obj in frame_meta.objects:
             if obj.label == 'frame': continue
             # print(f'object label: {obj.label}')
@@ -30,7 +32,7 @@ class Overlay(NvDsDrawFunc):
                 artist.add_bbox(obj.bbox, 3, (255, 255, 255, 255)) #RGBA
             elif obj.label == 'ball':
                 print(f'Drawing ball')
-                artist.add_bbox(obj.bbox, 3, (0, 255, 0, 255))
+                artist.add_bbox(obj.bbox, 3, (0, 255, 0, 255)) #Green
             elif obj.label == 'rim':
                 print(f'Drawing rim')
-                artist.add_bbox(obj.bbox, 3, (255, 0, 0, 255))
+                artist.add_bbox(obj.bbox, 3, (255, 0, 0, 255)) #Red

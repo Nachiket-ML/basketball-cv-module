@@ -80,7 +80,7 @@ pipeline:
             # class_name: TensorToBBoxConverter
             kwargs:
               # decode: true
-              # top_k: 10
+              top_k: 100
               confidence_threshold: 0.1
               nms_iou_threshold: 0.65
           # number of detected classes for detector model
@@ -93,87 +93,74 @@ pipeline:
               label: person
               selector:
                 kwargs:
-                  confidence_threshold: 0.1
-                  nms_iou_threshold: 0.65
-                  top_k: 10
+                  confidence_threshold: 0.2
+                  nms_iou_threshold: 0.7
+                  top_k: 20
                   # minimal width of the objects of this class to be included in output
                   # min_width: 32
                   # minimal height of the objects of this class to be included in output
                   # min_height: 32
             - class_id: 1
               label: ball
-              selector:
-                kwargs:
-                  top_k: 10
-              # selector:
-                # kwargs:
-                  # minimal width of the objects of this class to be included in output
-                  # min_width: 16
-                  # minimal height of the objects of this class to be included in output
-                  # min_height: 16
+            
             - class_id: 2
               label: rim
-              selector:
-                kwargs:
-                  top_k: 10
-              # selector:
-                # kwargs:
 
-    - element: nvinfer@attribute_model
-      name: rtmpose_body_2d
-      model:
-        format: onnx
-        local_path: /opt/savant/rtmpose-ort/rtmpose-m
-        model_file: end2end.onnx
-        engine_file: end2end.onnx_b1_gpu0_fp32.engine
-        batch_size: 1
-        precision: fp32
-        input: 
-          object: yolov8_detector.person
-          layer_name: input
-          shape: [3, 256, 192]
-          offsets: [123.675, 116.28, 103.53]
-          scale_factor: 0.00392156862745098
-        output:
-          layer_names: ['simcc_x', 'simcc_y']
-          # converter:
-          #   module: RTMPoseConverter
-          #   class_name: 
-          attributes:
-            - name: keypoint_0
-              internal: True
-            - name: keypoint_1
-              internal: True
-            - name: keypoint_2
-              internal: True
-            - name: keypoint_3
-              internal: True
-            - name: keypoint_4
-              internal: True
-            - name: keypoint_5
-              internal: True
-            - name: keypoint_6
-              internal: True
-            - name: keypoint_7
-              internal: True
-            - name: keypoint_8
-              internal: True
-            - name: keypoint_9
-              internal: True
-            - name: keypoint_10
-              internal: True
-            - name: keypoint_11
-              internal: True
-            - name: keypoint_12
-              internal: True
-            - name: keypoint_13
-              internal: True
-            - name: keypoint_14
-              internal: True
-            - name: keypoint_15
-              internal: True
-            - name: keypoint_16
-              internal: True
+    # - element: nvinfer@attribute_model
+    #   name: rtmpose_body_2d
+    #   model:
+    #     format: onnx
+    #     local_path: /opt/savant/rtmpose-ort/rtmpose-m
+    #     model_file: end2end.onnx
+    #     engine_file: end2end.onnx_b1_gpu0_fp32.engine
+    #     batch_size: 1
+    #     precision: fp32
+    #     input: 
+    #       object: yolov8_detector.person
+    #       layer_name: input
+    #       shape: [3, 256, 192]
+    #       offsets: [123.675, 116.28, 103.53]
+    #       scale_factor: 0.00392156862745098
+    #     output:
+    #       layer_names: ['simcc_x', 'simcc_y']
+    #       # converter:
+    #       #   module: RTMPoseConverter
+    #       #   class_name: 
+    #       attributes:
+    #         - name: keypoint_0
+    #           internal: True
+    #         - name: keypoint_1
+    #           internal: True
+    #         - name: keypoint_2
+    #           internal: True
+    #         - name: keypoint_3
+    #           internal: True
+    #         - name: keypoint_4
+    #           internal: True
+    #         - name: keypoint_5
+    #           internal: True
+    #         - name: keypoint_6
+    #           internal: True
+    #         - name: keypoint_7
+    #           internal: True
+    #         - name: keypoint_8
+    #           internal: True
+    #         - name: keypoint_9
+    #           internal: True
+    #         - name: keypoint_10
+    #           internal: True
+    #         - name: keypoint_11
+    #           internal: True
+    #         - name: keypoint_12
+    #           internal: True
+    #         - name: keypoint_13
+    #           internal: True
+    #         - name: keypoint_14
+    #           internal: True
+    #         - name: keypoint_15
+    #           internal: True
+    #         - name: keypoint_16
+    #           internal: True
 
     # custom pyfunc element
     - element: pyfunc

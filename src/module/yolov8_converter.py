@@ -7,7 +7,7 @@ from numba.typed import List
 
 from savant.base.converter import BaseObjectModelOutputConverter
 from savant.base.model import ObjectModel
-from savant.utils.nms import nms_cpu
+from savant.utils.nms import nms_cpu, nms_gpu
 
 
 class YoloV8ObjectConverter(BaseObjectModelOutputConverter):
@@ -44,9 +44,7 @@ class YoloV8ObjectConverter(BaseObjectModelOutputConverter):
               offset by roi upper left and scaled by roi width and height,
             * list of attributes values with confidences
               ``(attr_name, value, confidence)``
-        TODO: Adjust iou threshold to remove overlapping boxes 
-        TODO: Concatenate output_layers[1] (labels) to output bounding boxes instead of zeros
-        TODO: Add textual label for each bounding box (person, ball, rim)
+        TODO: Change nms_cpu to nms_gpu
         """
         # print(f'dets: {output_layers[0]}\n')
         # output_layers[0]: (100,5) where each row is bbox. Columns: x_center, y_center, width, height, confidence
@@ -55,10 +53,8 @@ class YoloV8ObjectConverter(BaseObjectModelOutputConverter):
         # print(f'labels: {output_layers[1]}\n')
         # print(f'labels shape: {output_layers[1].shape}\n') # (100,)
         
-        # output = np.transpose(output_layers[0]) # (5,100)
         output = output_layers[0]
         labels = output_layers[1]
-        ret_empty = np.float32([]), []
 
         confidences = output[:, 4] 
         # print(f'confidences: {confidences}\n')
@@ -73,7 +69,7 @@ class YoloV8ObjectConverter(BaseObjectModelOutputConverter):
             return np.zeros(output.shape)
 
         output = output[keep]
-
+        labels = labels[keep]
         bboxes = output[:, :4] # (x_left, y_top, x_right, y_bottom)
         confidences = output[:, 4]
         print(f'nms boxes: {bboxes}')
@@ -88,7 +84,7 @@ class YoloV8ObjectConverter(BaseObjectModelOutputConverter):
         height = height.reshape((bboxes.shape[0],1))
         bboxes = np.concatenate((xc, yc, width, height), axis=1)
         print(f'bboxes.shape: {bboxes.shape}')
-        #bboxes= bboxes.reshape((bboxes.shape[0], bboxes.shape[1]))
+
         output[:, :4] = bboxes
         keep = nms_cpu(
             bboxes,
@@ -105,18 +101,15 @@ class YoloV8ObjectConverter(BaseObjectModelOutputConverter):
             return np.zeros(output.shape)
 
         output = output[keep]
-        print(f'filtered output: {output}') # ()
-        print(f'filtered output.shape: {output.shape}')
-        # person class id = 0
-        class_ids = np.zeros((output.shape[0], 1), dtype=np.float32)
-        confidences = output[:, 4:5]
-        print(f'confidences: {confidences}')
-        print(f'confidences.shape: {confidences.shape}')
-        bboxes = output[:, :4]
-        # key_points = output[:, 5:]
-        # key_points = key_points.reshape(key_points.shape[0], -1, 3)
+        print(f'filtered output: {output}\n filtered output.shape: {output.shape}\n') 
 
-        # scale
+        labels = labels[keep].reshape((bboxes.shape[0], 1)).astype(np.uint16)
+        print(f'filtered labels: {labels}\n filtered labels.shape {labels.shape}\n')
+        
+        confidences = output[:, 4:5]
+        print(f'confidences: {confidences}\n confidences.shape: {confidences.shape}')
+        bboxes = output[:, :4]
+
         roi_left, roi_top, roi_width, roi_height = roi
         print(f'roi_left: {roi_left}\n roi_top: {roi_top}\n roi_width: {roi_width}\n roi_height: {roi_height}\n')
         if model.input.maintain_aspect_ratio:
@@ -133,13 +126,11 @@ class YoloV8ObjectConverter(BaseObjectModelOutputConverter):
         bboxes[:, 0] += roi_left
         bboxes[:, 1] += roi_top
 
-        bboxes = np.concatenate((class_ids, confidences, bboxes), axis=1)
         print(f'bboxes: {bboxes}')
         if bboxes.shape:
             print(f'bboxes.shape {bboxes.shape}')
         else:
             print(f'bboxes has no shape')
-        # attr_name = model.output.attributes[0].name
-        # key_points = [[(attr_name, pts, 1.0)] for pts in key_points]
+
+        bboxes = np.concatenate((labels, confidences, bboxes), axis=1)
         return bboxes
-        # return bboxes, key_points
