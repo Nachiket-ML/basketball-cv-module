@@ -27,7 +27,7 @@ network-type = 100
 pre-cluster-threshold = 10000000000.0
 
 [class-attrs-0]
-pre-cluster-threshold = 0.01
+pre-cluster-threshold = 0.1
 nms-iou-threshold = 0.65
 topk = 10
 

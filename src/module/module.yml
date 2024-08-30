@@ -19,8 +19,8 @@ parameters:
 
   # pipeline processing frame parameters
   frame:
-    width: 1280
-    height: 720
+    width: 640
+    height: 640
     # Add paddings to the frame before processing
   output_frame:
     codec: h264
@@ -81,7 +81,7 @@ pipeline:
             kwargs:
               # decode: true
               # top_k: 10
-              confidence_threshold: 0.01
+              confidence_threshold: 0.1
               nms_iou_threshold: 0.65
           # number of detected classes for detector model
           num_detected_classes: 3
@@ -93,7 +93,7 @@ pipeline:
               label: person
               selector:
                 kwargs:
-                  confidence_threshold: 0.01
+                  confidence_threshold: 0.1
                   nms_iou_threshold: 0.65
                   top_k: 10
                   # minimal width of the objects of this class to be included in output
