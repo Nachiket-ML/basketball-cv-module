@@ -1,0 +1,192 @@
+# module name, required
+name: ${oc.env:MODULE_NAME, 'template'}
+
+# base module parameters
+parameters:
+  # DevMode (hot Python code reload on file change)
+  dev_mode: True
+  # Allows sending shutdown message to the module with the auth-key (see below)
+  shutdown_auth: "shutdown"
+  # enable OpenTelemetry
+  telemetry:
+    tracing:
+      sampling_period: 100
+      root_span_name: pipeline
+      provider: jaeger
+      provider_params:
+        service_name: demo-pipeline
+        endpoint: jaeger:6831
+
+  # pipeline processing frame parameters
+  frame:
+    width: 1280
+    height: 720
+    # Add paddings to the frame before processing
+  output_frame:
+    codec: h264
+  # custom drawing on frames function
+  draw_func:
+    module: src.module.overlay_custom
+    class_name: Overlay
+    #kwargs:
+    rendered_objects:
+      yolov8_detector:
+        person:
+        ball:
+        rim:
+
+
+# pipeline definition
+pipeline:
+  # define pipeline's main elements
+  elements:
+    # primary detector element, inference is provided by the nvinfer Deepstream element
+    # model type is detector (other available types are: classifier, custom)
+    - element: nvinfer@detector
+      # Model's name in the pipeline, mandatory
+      name: yolov8_detector
+      # model definition
+      model:
+        # format of the provided model file
+        format: onnx
+        # local_path: /mnt/c/Users/nacho/Downloads/Savant/samples/my-module/yolox-onnx/
+        local_path: /opt/savant/yolox-onnx
+        # model file name, without location
+        # model_file: resnet34_peoplenet_pruned.etlt  # v2.0 Accuracy: 84.3 Size 20.9 MB
+        model_file: yolox.onnx
+        engine_file: yolox.onnx_b1_gpu0_fp32.engine
+        batch_size: 1
+        precision: fp32
+        # configuration of input data and custom preprocessing methods
+        input:
+          # model input layer name
+          layer_name: input
+          # model input layer shape
+          # color_format: bgr
+          shape: [3, 640, 640]
+          maintain_aspect_ratio: True
+          # pixel scaling/normalization factor
+          # scale_factor: 0.0039215697906911373
+          # scale_factor: 0.016
+
+        # configuration of model output
+        output:
+          # model output layer names
+          layer_names: [dets, labels]
+          converter:
+            module: yolov8_converter
+            class_name: YoloV8ObjectConverter
+            # module: savant.converter.yolo
+            # class_name: TensorToBBoxConverter
+            kwargs:
+              # decode: true
+              # top_k: 10
+              confidence_threshold: 0.01
+              nms_iou_threshold: 0.65
+          # number of detected classes for detector model
+          num_detected_classes: 3
+          # specify which detected objects are included in output
+          objects:
+            # object class id
+            - class_id: 0
+              # label assigned to objects of this class id
+              label: person
+              selector:
+                kwargs:
+                  confidence_threshold: 0.01
+                  nms_iou_threshold: 0.65
+                  top_k: 10
+                  # minimal width of the objects of this class to be included in output
+                  # min_width: 32
+                  # minimal height of the objects of this class to be included in output
+                  # min_height: 32
+            - class_id: 1
+              label: ball
+              selector:
+                kwargs:
+                  top_k: 10
+              # selector:
+                # kwargs:
+                  # minimal width of the objects of this class to be included in output
+                  # min_width: 16
+                  # minimal height of the objects of this class to be included in output
+                  # min_height: 16
+            - class_id: 2
+              label: rim
+              selector:
+                kwargs:
+                  top_k: 10
+              # selector:
+                # kwargs:
+
+    - element: nvinfer@attribute_model
+      name: rtmpose_body_2d
+      model:
+        format: onnx
+        local_path: /opt/savant/rtmpose-ort/rtmpose-m
+        model_file: end2end.onnx
+        engine_file: end2end.onnx_b1_gpu0_fp32.engine
+        batch_size: 1
+        precision: fp32
+        input: 
+          object: yolov8_detector.person
+          layer_name: input
+          shape: [3, 256, 192]
+          offsets: [123.675, 116.28, 103.53]
+          scale_factor: 0.00392156862745098
+        output:
+          layer_names: ['simcc_x', 'simcc_y']
+          # converter:
+          #   module: RTMPoseConverter
+          #   class_name: 
+          attributes:
+            - name: keypoint_0
+              internal: True
+            - name: keypoint_1
+              internal: True
+            - name: keypoint_2
+              internal: True
+            - name: keypoint_3
+              internal: True
+            - name: keypoint_4
+              internal: True
+            - name: keypoint_5
+              internal: True
+            - name: keypoint_6
+              internal: True
+            - name: keypoint_7
+              internal: True
+            - name: keypoint_8
+              internal: True
+            - name: keypoint_9
+              internal: True
+            - name: keypoint_10
+              internal: True
+            - name: keypoint_11
+              internal: True
+            - name: keypoint_12
+              internal: True
+            - name: keypoint_13
+              internal: True
+            - name: keypoint_14
+              internal: True
+            - name: keypoint_15
+              internal: True
+            - name: keypoint_16
+              internal: True
+
+    # custom pyfunc element
+    - element: pyfunc
+      module: src.module.custom_pyfunc
+      class_name: CustomPyFunc
+      #kwargs:
+# remote storage where the model files can be found
+        # skip if providing model files locally
+        # remote:
+        #   url: s3://savant-data/models/peoplenet/peoplenet_pruned_v2.0.zip
+        #   checksum_url: s3://savant-data/models/peoplenet/peoplenet_pruned_v2.0.md5
+        #   parameters:
+        #     endpoint: https://eu-central-1.linodeobjects.com
+          # or get the model directly from NGC API
+          # peoplenet v2.0
+          # url: "https://api.ngc.nvidia.com/v2/models/nvidia/tao/peoplenet/versions/pruned_v2.0/zip"
