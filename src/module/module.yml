@@ -25,6 +25,7 @@ parameters:
   output_frame:
     codec: h264
   # custom drawing on frames function
+  keypoint_detector: rtmpose_body_2d
   draw_func:
     module: src.module.overlay_custom
     class_name: Overlay
@@ -106,61 +107,63 @@ pipeline:
             - class_id: 2
               label: rim
 
-    # - element: nvinfer@attribute_model
-    #   name: rtmpose_body_2d
-    #   model:
-    #     format: onnx
-    #     local_path: /opt/savant/rtmpose-ort/rtmpose-m
-    #     model_file: end2end.onnx
-    #     engine_file: end2end.onnx_b1_gpu0_fp32.engine
-    #     batch_size: 1
-    #     precision: fp32
-    #     input: 
-    #       object: yolov8_detector.person
-    #       layer_name: input
-    #       shape: [3, 256, 192]
-    #       offsets: [123.675, 116.28, 103.53]
-    #       scale_factor: 0.00392156862745098
-    #     output:
-    #       layer_names: ['simcc_x', 'simcc_y']
-    #       # converter:
-    #       #   module: RTMPoseConverter
-    #       #   class_name: 
-    #       attributes:
-    #         - name: keypoint_0
-    #           internal: True
-    #         - name: keypoint_1
-    #           internal: True
-    #         - name: keypoint_2
-    #           internal: True
-    #         - name: keypoint_3
-    #           internal: True
-    #         - name: keypoint_4
-    #           internal: True
-    #         - name: keypoint_5
-    #           internal: True
-    #         - name: keypoint_6
-    #           internal: True
-    #         - name: keypoint_7
-    #           internal: True
-    #         - name: keypoint_8
-    #           internal: True
-    #         - name: keypoint_9
-    #           internal: True
-    #         - name: keypoint_10
-    #           internal: True
-    #         - name: keypoint_11
-    #           internal: True
-    #         - name: keypoint_12
-    #           internal: True
-    #         - name: keypoint_13
-    #           internal: True
-    #         - name: keypoint_14
-    #           internal: True
-    #         - name: keypoint_15
-    #           internal: True
-    #         - name: keypoint_16
-    #           internal: True
+    - element: nvinfer@attribute_model
+      name: ${parameters.keypoint_detector}
+      model:
+        format: onnx
+        local_path: /opt/savant/rtmpose-ort/rtmpose-m
+        model_file: end2end.onnx
+        engine_file: end2end.onnx_b1_gpu0_fp32.engine
+        batch_size: 1
+        precision: fp32
+        input: 
+          object: yolov8_detector.person
+          layer_name: input
+          shape: [3, 256, 192]
+          offsets: [123.675, 116.28, 103.53]
+          # scale_factor: 0.00392156862745098
+        output:
+          layer_names: ['simcc_x', 'simcc_y']
+          converter:
+            module: rtmpose_converter
+            class_name: RTMPoseConverter
+          attributes:
+            - name: keypoints
+              internal: True
+            # - name: keypoint_0
+            #   internal: True
+            # - name: keypoint_1
+            #   internal: True
+            # - name: keypoint_2
+            #   internal: True
+            # - name: keypoint_3
+            #   internal: True
+            # - name: keypoint_4
+            #   internal: True
+            # - name: keypoint_5
+            #   internal: True
+            # - name: keypoint_6
+            #   internal: True
+            # - name: keypoint_7
+            #   internal: True
+            # - name: keypoint_8
+            #   internal: True
+            # - name: keypoint_9
+            #   internal: True
+            # - name: keypoint_10
+            #   internal: True
+            # - name: keypoint_11
+            #   internal: True
+            # - name: keypoint_12
+            #   internal: True
+            # - name: keypoint_13
+            #   internal: True
+            # - name: keypoint_14
+            #   internal: True
+            # - name: keypoint_15
+            #   internal: True
+            # - name: keypoint_16
+            #   internal: True
 
     # custom pyfunc element
     - element: pyfunc

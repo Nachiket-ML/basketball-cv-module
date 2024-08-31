@@ -8,7 +8,7 @@ uff-input-blob-name = input
 infer-dims = 3;256;192
 maintain-aspect-ratio = 0
 symmetric-padding = 0
-net-scale-factor = 0.00392156862745098
+net-scale-factor = 1.0
 offsets = 123.675;116.28;103.53
 model-color-format = 0
 output-blob-names = simcc_x;simcc_y
@@ -19,6 +19,6 @@ process-mode = 2
 operate-on-gie-id = 1
 operate-on-class-ids = 0
 gie-unique-id = 2
-output-tensor-meta = 0
-network-type = 1
+output-tensor-meta = 1
+network-type = 100
 

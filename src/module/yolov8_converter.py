@@ -11,7 +11,7 @@ from savant.utils.nms import nms_cpu, nms_gpu
 
 
 class YoloV8ObjectConverter(BaseObjectModelOutputConverter):
-    """`YOLOv8Pose converter."""
+    """`YOLOv8 converter."""
 
     def __init__(
         self,
@@ -44,6 +44,7 @@ class YoloV8ObjectConverter(BaseObjectModelOutputConverter):
               offset by roi upper left and scaled by roi width and height,
             * list of attributes values with confidences
               ``(attr_name, value, confidence)``
+        TODO: Set tensor_format to CuPy to load output_layers onto GPU.
         TODO: Change nms_cpu to nms_gpu
         """
         # print(f'dets: {output_layers[0]}\n')
