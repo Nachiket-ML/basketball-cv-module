@@ -71,7 +71,7 @@ class RTMPoseConverter(BaseAttributeModelOutputConverter):
         max_indices_simcc_x = max_indices_simcc_x.reshape((num_keypoints, 1)).astype(np.uint16)
         max_indices_simcc_y = max_indices_simcc_y.reshape((num_keypoints, 1)).astype(np.uint16)
 
-        keypoint_labels = np.array(['keypoint_{i}' for i in range(num_keypoints)]).reshape((num_keypoints, 1))
+        keypoint_labels = np.array([f'keypoint_{i}' for i in range(num_keypoints)]).reshape((num_keypoints, 1))
         keypoints = np.concatenate((keypoint_labels, max_indices_simcc_x, max_indices_simcc_y), axis=1)
         print(f'Keypoints RTMPose converter: {keypoints}')
         return keypoints
