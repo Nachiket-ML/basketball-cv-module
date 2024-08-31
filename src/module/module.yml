@@ -108,7 +108,7 @@ pipeline:
               label: rim
 
     - element: nvinfer@attribute_model
-      name: ${parameters.keypoint_detector}
+      name: rtmpose_body_2d
       model:
         format: onnx
         local_path: /opt/savant/rtmpose-ort/rtmpose-m
@@ -130,40 +130,7 @@ pipeline:
           attributes:
             - name: keypoints
               internal: True
-            # - name: keypoint_0
-            #   internal: True
-            # - name: keypoint_1
-            #   internal: True
-            # - name: keypoint_2
-            #   internal: True
-            # - name: keypoint_3
-            #   internal: True
-            # - name: keypoint_4
-            #   internal: True
-            # - name: keypoint_5
-            #   internal: True
-            # - name: keypoint_6
-            #   internal: True
-            # - name: keypoint_7
-            #   internal: True
-            # - name: keypoint_8
-            #   internal: True
-            # - name: keypoint_9
-            #   internal: True
-            # - name: keypoint_10
-            #   internal: True
-            # - name: keypoint_11
-            #   internal: True
-            # - name: keypoint_12
-            #   internal: True
-            # - name: keypoint_13
-            #   internal: True
-            # - name: keypoint_14
-            #   internal: True
-            # - name: keypoint_15
-            #   internal: True
-            # - name: keypoint_16
-            #   internal: True
+
 
     # custom pyfunc element
     - element: pyfunc

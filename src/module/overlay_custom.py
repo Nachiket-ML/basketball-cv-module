@@ -5,7 +5,7 @@ from savant.deepstream.meta.frame import NvDsFrameMeta
 from savant.utils.artist import Artist
 from savant.parameter_storage import param_storage
 
-KEYPOINT_DETECTOR = param_storage()['keypoint_detector']
+KEYPOINT_DETECTOR = 'rtmpose_body_2d'
 
 skeleton = [
     ([15, 13], (255, 0, 0, 255)),  # left leg
@@ -79,38 +79,61 @@ class Overlay(NvDsDrawFunc):
                 artist.add_bbox(obj.bbox, 3, (255, 255, 255, 255)) #RGBA
                 kp_attr = obj.get_attr_meta(KEYPOINT_DETECTOR, 'keypoints')
                 print(f'kp_attr: {kp_attr}')
-                if kp_attr is None:
+                if not kp_attr:
                     continue
-                key_points = kp_attr.value
-                print(f'key_points: {key_points}')
+                key_points = kp_attr.value # x,y coordinates
+                print(f'kp_attr.value: {key_points}')
                 for pair, color in skeleton:
-                    if (
-                        key_points[pair[0]][2] > KP_CONFIDENCE_THRESHOLD
-                        and key_points[pair[1]][2] > KP_CONFIDENCE_THRESHOLD
-                    ):
-                        artist.add_line(
-                            pt1=(
-                                int(key_points[pair[0]][0]),
-                                int(key_points[pair[0]][1]),
-                            ),
-                            pt2=(
-                                int(key_points[pair[1]][0]),
-                                int(key_points[pair[1]][1]),
-                            ),
-                            color=color,
-                            thickness=2,
-                        )
-                for i, (x, y, conf) in enumerate(key_points):
-                    if conf > KP_CONFIDENCE_THRESHOLD:
-                        artist.add_circle(
-                            center=(int(x), int(y)),
-                            radius=2,
-                            color=(255, 0, 0, 255),
-                            thickness=2,
-                        )
+                    artist.add_line(
+                        pt1=(
+                            int(key_points[pair[0]][0]),
+                            int(key_points[pair[0]][1]),
+                        ),
+                        pt2=(
+                            int(key_points[pair[1]][0]),
+                            int(key_points[pair[1]][1]),
+                        ),
+                        color=color,
+                        thickness=2,
+                    )
+                for (x, y) in key_points:
+                    # if conf > KP_CONFIDENCE_THRESHOLD:
+                    artist.add_circle(
+                        center=(int(x), int(y)),
+                        radius=2,
+                        color=(255, 0, 0, 255),
+                        thickness=2,
+                    )
             elif obj.label == 'ball':
                 print(f'Drawing ball')
                 artist.add_bbox(obj.bbox, 3, (0, 255, 0, 255)) #Green
             elif obj.label == 'rim':
                 print(f'Drawing rim')
                 artist.add_bbox(obj.bbox, 3, (255, 0, 0, 255)) #Red
+
+# FILTER KEYPOINTS BY CONFIDENCE
+# for pair, color in skeleton:
+#                     if (
+#                         key_points[pair[0]][2] > KP_CONFIDENCE_THRESHOLD
+#                         and key_points[pair[1]][2] > KP_CONFIDENCE_THRESHOLD
+#                     ):
+#                         artist.add_line(
+#                             pt1=(
+#                                 int(key_points[pair[0]][0]),
+#                                 int(key_points[pair[0]][1]),
+#                             ),
+#                             pt2=(
+#                                 int(key_points[pair[1]][0]),
+#                                 int(key_points[pair[1]][1]),
+#                             ),
+#                             color=color,
+#                             thickness=2,
+#                         )
+#                 for i, (x, y, conf) in enumerate(key_points):
+#                     if conf > KP_CONFIDENCE_THRESHOLD:
+#                         artist.add_circle(
+#                             center=(int(x), int(y)),
+#                             radius=2,
+#                             color=(255, 0, 0, 255),
+#                             thickness=2,
+#                         )

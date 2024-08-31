@@ -14,7 +14,7 @@
   },
   "workspaceMount": "source=${localWorkspaceFolder}/src,target=/opt/savant/src,type=bind",
   "workspaceFolder": "/opt/savant/src",
-  "runArgs": [ "--gpus=all", "--network=my-module-nachiket_network" ],
+  "runArgs": [ "--gpus=all", "--network=basketball-cv-module_network" ],
   "containerEnv": {
     "LOGLEVEL": "INFO",
     "ZMQ_SRC_ENDPOINT": "sub+bind:ipc:///tmp/zmq-sockets/input-video.ipc",
@@ -23,7 +23,7 @@
   },
   "mounts": [
     {
-      "source": "my-module-nachiket_zmq_sockets",
+      "source": "basketball-cv-module_zmq_sockets",
       "target": "/tmp/zmq-sockets",
       "type": "volume"
     },
